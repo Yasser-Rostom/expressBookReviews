@@ -10,19 +10,25 @@ app.use(express.json());
 
 app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
-app.use("/customer/auth/*", function auth(req,res,next){
-    if(req.session.authorization){
+app.use("/customer/auth/*", function auth(req, res, next) {
+    if (req.session.authorization) {
         token = req.session.authorization['accessToken'];
-        jwt.verify(token, 'access',(err,user)=>{
-            if(!err){
+        jwt.verify(token, 'access', (err, user) => {
+            if (!err) {
+                const username = user.username;
+                req.session.username = username;
                 req.user = user;
+                console.log(username + " "+user)
                 next();
-            }else{
-                return res.status(403).json({message: "User not autorized"});
+            } else {
+                return res.status(403).json({ message: "User not authorized" });
             }
         })
+    } else {
+        return res.status(403).json({ message: "User not authorized" });
     }
 });
+
  
 const PORT =5000;
 

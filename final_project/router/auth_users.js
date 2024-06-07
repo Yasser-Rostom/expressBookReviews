@@ -40,25 +40,64 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    const username = req.body.username;
-    isbn = req.params.isbn;
-    const userreview = req.body.review
+    const username = req.session.authorization.username;
+    const isbn = req.params.isbn;
+    const userReview = req.query.review;
+    console.log("auth_user username ", username);
+    console.log("auth_user username ",req.session);
     const book = books[isbn];
-    if(book){
-        let reviews = book.reviews;
-        for(let review in reviews){
-            if(review.username === username){
-                review["review"] = userreview;
-                return res.status(200).send("review updated successfully ${books[isbn]}");
-            }else{
-                book["reviews"].push({"username":username,"review":userreview});
-                return res.status(200).send("review addded successfully ${books[isbn]}");
 
+    if(book){
+  
+        let reviews = book.reviews;
+        let userAlreadyReviewed = false;
+
+        for (let reviewId in reviews) {
+            if (reviews[reviewId].username === username) {
+                // If user has already reviewed, update the review
+                reviews[reviewId].review = userReview;
+                userAlreadyReviewed = true;
+                break;
             }
         }
-    }else{
+
+        if (!userAlreadyReviewed) {
+            // If user hasn't reviewed yet, add a new review
+            const newReviewId = Object.keys(reviews).length + 1; // Generate new review ID
+            reviews[newReviewId] = {
+                username: username,
+                review: userReview
+            };
+        }
+
+        return res.status(200).send(`Review ${userAlreadyReviewed ? 'updated' : 'added'} successfully for ${book.title}`);
+    } else {
+        return res.status(404).send("Book not found!");
+    }
+});
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    const book = books[isbn];
+    if(!book) {
         return res.status(404).send("Book not found!");
 
+    }else{
+        let reviewRemoved = false;
+const username= req.session.authorization.username;
+let reviews = book.reviews;
+for(let reviewId in reviews){
+    if(username=== reviews[reviewId].username){
+        delete reviews[reviewId];
+        reviewRemoved = true;
+        break;
+    }
+}
+if(reviewRemoved){
+    return res.status(200).send(`Review removed successfully for ${book.title}`);
+}else{
+    return res.status(500).send(`Server error please try again`);
+
+}
     }
 });
 

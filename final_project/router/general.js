@@ -1,6 +1,7 @@
 const express = require('express');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
+const axios = require('axios');
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
@@ -20,10 +21,28 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  return res.send(JSON.stringify(books,null,4))
-
+public_users.get('/', function (req, res) {
+    getBooks()
+        .then(books => {
+            res.send(JSON.stringify(books, null, 4));
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+        });
 });
+
+function getBooks() {
+    return new Promise((resolve, reject) => {
+        axios.get('/')
+            .then(response => {
+                resolve(response.data);
+            })
+            .catch(error => {
+                reject(error);
+            });
+    });
+}
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {

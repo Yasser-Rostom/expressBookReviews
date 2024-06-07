@@ -33,7 +33,6 @@ public_users.get('/', function (req, res) {
         });
 });
 
-// Simulated asynchronous function to fetch books data
 function getBooks() {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -50,7 +49,7 @@ public_users.get('/isbn/:isbn',function (req, res) {
   //Write your code here
   const isbn = req.params.isbn;
   if(isbn){
-        getBookDetails(isbn).then(bookDetails =>{
+    getBookDetailsByIsbn(isbn).then(bookDetails =>{
              res.send(bookDetails);
         }).catch(error =>{
             console.error(error);
@@ -63,7 +62,7 @@ public_users.get('/isbn/:isbn',function (req, res) {
      res.send("ISBN is wrong");
   }
  });
-  function getBookDetails(isbn){
+  function getBookDetailsByIsbn(isbn){
     return new Promise((resolve, reject)=>{
         setTimeout(()=>{
             resolve(books[isbn])
